@@ -17,6 +17,8 @@
 #include <YunClient.h>
 #include <PubSubClient.h>
 
+String serverAddr = "50.71.0.118";
+
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -59,7 +61,7 @@ void setup()
   Serial.begin(9600);
   while(!Serial);
 
-  client.setServer("50.71.0.118", 1883);
+  client.setServer(serverAddr.c_str(), 1883);
   client.setCallback(callback);
 
   // Allow the hardware to sort itself out
