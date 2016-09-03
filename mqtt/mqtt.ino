@@ -17,7 +17,7 @@
 #include <YunClient.h>
 #include <PubSubClient.h>
 
-String serverAddr = "50.71.0.118";
+String serverAddr = "50.71.0.121";
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
