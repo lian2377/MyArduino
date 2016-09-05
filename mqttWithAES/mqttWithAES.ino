@@ -19,7 +19,63 @@
 #include <AESLib.h>
 
 String serverAddr = "50.71.0.121";
-uint8_t key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+uint8_t key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
+char* padding(char* data, int dataLen, int* outBlockCount)
+{
+  int bytesEachBlock = 128 / 8; // block size
+  int paddCount = bytesEachBlock - (dataLen % bytesEachBlock);
+  int newLen = dataLen;
+  if ( paddCount < 16)
+    newLen = dataLen + paddCount;
+  *outBlockCount = newLen / bytesEachBlock;
+  char * newData = (char*)malloc(newLen + 1);
+  memcpy(newData, data, dataLen);
+  memset(newData + dataLen, 5, newLen - dataLen);
+  newData[newLen] = 0;
+  return newData;
+}
+
+void unpadding(char* padded, int blockCount)
+{
+  for (int i = 15; i >= 0; --i)
+  {
+    if (padded[16 * (blockCount - 1) + i] == 0x5)
+      padded[16 * (blockCount - 1) + i] = 0;
+    else
+      break;
+  } 
+}
+
+int aes256_enc(char* plaintext, unsigned int len, uint8_t* key, char* &outCipherText)
+{
+  int blockCount = 0;
+
+  char * padded = padding(plaintext, len, &blockCount);
+
+  for (int i = 0 ; i < blockCount; ++i)
+  {
+    aes256_enc_single(key, padded + 16 * i);
+  }
+  outCipherText = padded;
+  return 16 * blockCount;
+}
+
+int aes256_dec(char* ciphertext, unsigned int len, uint8_t* key, char* &outPlainText)
+{
+  int blockCount = 0;
+  char * padded = padding(ciphertext, len, &blockCount);
+
+  for (int i = 0 ; i < blockCount; ++i)
+  {
+    aes256_dec_single(key, padded + 16 * i);
+  }
+
+  unpadding(padded, blockCount);
+
+  outPlainText = padded;
+  return strlen(padded);
+}
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
@@ -29,10 +85,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
-
-  aes128_dec_single(key, payload);
+  char *plain = NULL;
+  aes256_dec((char*)payload, length, key, plain);
   Serial.print("decrypted:");
-  Serial.println(payload);
+  Serial.println(plain);
+  free(plain);
 }
 
 YunClient yClient;
@@ -47,10 +104,12 @@ void reconnect() {
       Serial.println("connected");
       // Once connected, publish an announcement...
       char data[] = "hellow world";
-      aes128_enc_single(key, data);
-      client.publish("myTopic",data);
+      char *edata = NULL;
+      aes256_enc(data, strlen(data), key, edata);
+      client.publish("myTopic",edata);
       // ... and resubscribe
       client.subscribe("myTopic");
+      free(edata);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
