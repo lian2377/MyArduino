@@ -8,11 +8,11 @@ void setup() {
   while(!Serial);
   
   Serial.println("Connecting...");
-  if(client.connect("192.168.2.5",80)){
+  if(client.connect("www.google.com",80)){
     Serial.println("connected");
     // Make a HTTP request:
     client.println("GET /search?q=arduino HTTP/1.1");
-    client.println("Host: 192.168.2.5");
+    client.println("Host: www.google.com");
     client.println("Connection: close");
     client.println();
   }else{
