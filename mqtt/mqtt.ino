@@ -17,7 +17,7 @@
 #include <YunClient.h>
 #include <PubSubClient.h>
 
-String serverAddr = "50.71.0.121";
+String serverAddr = "192.168.2.5";
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
@@ -42,7 +42,7 @@ void reconnect() {
       // Once connected, publish an announcement...
       client.publish("myTopic","hello world");
       // ... and resubscribe
-      client.subscribe("myTopic");
+      //client.subscribe("myTopic");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -56,10 +56,11 @@ void reconnect() {
 void setup()
 {
   pinMode(13,OUTPUT);
-  Bridge.begin();
   digitalWrite(13 ,HIGH);
+  Bridge.begin();
   Serial.begin(9600);
   while(!Serial);
+  digitalWrite(13 ,LOW);
 
   client.setServer(serverAddr.c_str(), 1883);
   client.setCallback(callback);

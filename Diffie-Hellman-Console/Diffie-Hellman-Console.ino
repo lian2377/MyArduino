@@ -18,22 +18,22 @@ PubSubClient client(yClient);
 Process shell;
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
+  Console.print("Message arrived [");
+  Console.print(topic);
+  Console.print("] ");
   B = 0;
   String temp = "";
   for (int i=0;i<length;i++) {
     temp += (char)payload[i];
   }
   B = temp.toInt();
-  Serial.println("Received B is " + String(B));
+  Console.println("Received B is " + String(B));
   
-  Serial.println("DHKE_" + myAddr + "  A is " + String(A));
+  Console.println("DHKE_" + myAddr + "  A is " + String(A));
   if(client.publish(("DHKE_" + myAddr).c_str(), String(A).c_str())){
-    Serial.println("Publish completed.");
+    Console.println("Publish completed.");
   }else{
-    Serial.println("Publish failed.");
+    Console.println("Publish failed.");
   }
 }
 
@@ -41,18 +41,18 @@ void reconnect() {
   
   // Loop until we're reconnected
   while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
+    Console.print("Attempting MQTT connection...");
     // Attempt to connect
     if (client.connect(mqttClientName.c_str())) {
-      Serial.println("connected");
+      Console.println("connected");
       // Once connected, publish an announcement...
       
       // ... and resubscribe
       client.subscribe(("DHKE_" + targetAddr).c_str());
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
+      Console.print("failed, rc=");
+      Console.print(client.state());
+      Console.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -65,8 +65,8 @@ void setup()
   digitalWrite(13 ,LOW);
   Bridge.begin();
   digitalWrite(13 ,HIGH);
-  Serial.begin(9600);
-  while(!Serial);
+  Console.begin();
+  while(!Console);
 
   client.setServer(serverAddr.c_str(), 1883);
   client.setCallback(callback);
@@ -83,10 +83,10 @@ void setup()
       myAddr+=c;
     }
   }
-  Serial.println("myMacAddr is " + myAddr);
+  Console.println("myMacAddr is " + myAddr);
   A = pow_mod(g,a,p);
   //A = round(pow(g,a)) % p;
-  Serial.println("A is " + String(A));
+  Console.println("A is " + String(A));
 }
 
 int count = 10;
@@ -97,20 +97,20 @@ void loop()
     reconnect();
   }else{
     if(B > 0){
-      Serial.println("A is " + String(A));
+      Console.println("A is " + String(A));
       key = pow_mod(B,a,p);
-      Serial.println("Key is " + String(key));
+      Console.println("Key is " + String(key));
       if(--count <= 0){
         count=10;
         B=0;
       }
       delay(5000);
     }else{
-      Serial.println("DHKE_" + myAddr + "  A is " + String(A));
+      Console.println("DHKE_" + myAddr + "  A is " + String(A));
       if(client.publish(("DHKE_" + myAddr).c_str(), String(A).c_str())){
-        Serial.println("Publish completed.");
+        Console.println("Publish completed.");
       }else{
-        Serial.println("Publish failed.");
+        Console.println("Publish failed.");
       }
     }
     //client.publish("myTopic","im not dead.");
