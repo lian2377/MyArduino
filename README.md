@@ -1,4 +1,4 @@
 # MyArduino
-Just an project for Arduino practice.
+Just a project for Arduino practice.
 
 Feel free to use it.
